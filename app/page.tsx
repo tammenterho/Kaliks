@@ -72,11 +72,26 @@ export default function Home() {
   const [newNoteText, setNewNoteText] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isZoomed, setIsZoomed] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    const saved = window.localStorage.getItem("ylane-dark-mode");
+    return saved === "true";
+  });
+  const [isZoomed, setIsZoomed] = useState<boolean>(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    const saved = window.localStorage.getItem("ylane-zoom");
+    return saved === "true";
+  });
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingNote, setIsSavingNote] = useState(false);
+  const [isCopyingMissingItems, setIsCopyingMissingItems] = useState(false);
 
   useEffect(() => {
     document.body.style.background = isDarkMode
@@ -84,7 +99,12 @@ export default function Home() {
       : "linear-gradient(135deg, #f7f3eb 0%, #edf3ec 100%)";
     document.body.style.color = isDarkMode ? "#e5e7eb" : "#1d241b";
     document.body.style.transition = "background 0.2s ease, color 0.2s ease";
+    window.localStorage.setItem("ylane-dark-mode", String(isDarkMode));
   }, [isDarkMode]);
+
+  useEffect(() => {
+    window.localStorage.setItem("ylane-zoom", String(isZoomed));
+  }, [isZoomed]);
 
   useEffect(() => {
     const hasSessionCookie = document.cookie
@@ -494,6 +514,35 @@ export default function Home() {
     .map((entry) => entry.trim())
     .filter(Boolean);
 
+  const handleCopyMissingItems = async () => {
+    if (!missingItems.length) {
+      return;
+    }
+
+    const listText = missingItems.map((item, index) => `${index + 1}. ${item.text}`).join("\n");
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(listText);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = listText;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.top = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+
+      setIsCopyingMissingItems(true);
+      window.setTimeout(() => setIsCopyingMissingItems(false), 1400);
+    } catch (error) {
+      console.error("Listan kopiointi epäonnistui:", error);
+    }
+  };
+
   const handleAddNote = async () => {
     const text = newNoteText.trim();
 
@@ -602,6 +651,19 @@ export default function Home() {
 
           <div className="section-status-row">
             <span className="counter">{missingItems.length} kpl</span>
+          </div>
+
+          <div className="checklist-copy-row">
+            <button
+              type="button"
+              className="copy-list-button"
+              onClick={() => void handleCopyMissingItems()}
+              aria-label="Kopioi lista leikepöydälle"
+              title="Kopioi lista leikepöydälle"
+            >
+              <span aria-hidden="true">📋</span>
+            </button>
+            {isCopyingMissingItems && <span className="copy-success-text">Kopioitu!</span>}
           </div>
 
           <div className="checklist-add">
@@ -714,8 +776,9 @@ export default function Home() {
                       void deleteTask(task.id);
                     }}
                     aria-label={`Poista tehtävä ${task.title}`}
+                    title={`Poista tehtävä ${task.title}`}
                   >
-                    Poista
+                    🗑
                   </button>
                 </div>
               </div>
@@ -765,8 +828,10 @@ export default function Home() {
                     type="button"
                     className="delete-button"
                     onClick={() => void deleteTask(task.id)}
+                    aria-label="Poista tehtävä"
+                    title="Poista tehtävä"
                   >
-                    🗑 Poista
+                    🗑
                   </button>
                 </div>
               </div>
@@ -814,8 +879,9 @@ export default function Home() {
                     className="list-delete-button"
                     onClick={() => void handleRemoveNote(index)}
                     aria-label={`Poista huomio ${note}`}
+                    title={`Poista huomio ${note}`}
                   >
-                    Poista
+                    🗑
                   </button>
                 </div>
               ))

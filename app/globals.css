@@ -609,11 +609,11 @@ textarea {
   display: block;
   width: 100%;
   border: none;
-  border-radius: 8px;
-  padding: 5px 8px;
-  min-height: 22px;
-  font-size: 0.55rem;
-  line-height: 1.2;
+  border-radius: 6px;
+  padding: 4px 6px;
+  min-height: 16px;
+  font-size: 0.52rem;
+  line-height: 1.1;
   font-weight: 700;
   color: white;
   overflow: hidden;
@@ -621,6 +621,19 @@ textarea {
   text-overflow: ellipsis;
   text-align: center;
   cursor: pointer;
+  opacity: 0.96;
+}
+
+.day-more-events {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  font-size: 0.5rem;
+  line-height: 1.1;
+  font-weight: 700;
+  color: rgba(29, 36, 27, 0.7);
+  letter-spacing: 0.01em;
 }
 
 .day-cell.outside-month {
@@ -670,6 +683,71 @@ textarea {
   line-height: 1.5;
 }
 
+.day-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.day-summary-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(29, 36, 27, 0.12);
+}
+
+.day-summary-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.day-summary-item-main {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+
+.day-summary-item strong {
+  font-size: 0.96rem;
+  display: block;
+}
+
+.day-summary-item p {
+  font-size: 0.76rem;
+  color: rgba(29, 36, 27, 0.7);
+  overflow-wrap: anywhere;
+}
+
+.day-summary-delete {
+  border: 1px solid rgba(196, 81, 81, 0.2);
+  background: rgba(196, 81, 81, 0.08);
+  color: #d94d4d;
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.day-summary-actions {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(29, 36, 27, 0.12);
+  display: flex;
+  justify-content: center;
+}
+
 .close-button {
   background: rgba(29, 36, 27, 0.06);
   border: none;
@@ -684,11 +762,15 @@ textarea {
   margin-top: 14px;
   border: none;
   background: rgba(196, 81, 81, 0.1);
-  color: #b54949;
+  color: #d94d4d;
   border-radius: 10px;
   padding: 8px 10px;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  line-height: 1;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .event-composer {
@@ -776,6 +858,36 @@ textarea {
   margin: 0;
   line-height: 1.5;
   color: rgba(29, 36, 27, 0.8);
+}
+
+.checklist-copy-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.copy-list-button {
+  border: 1px solid rgba(29, 36, 27, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--foreground);
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.copy-success-text {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--green);
 }
 
 .checklist-add,
@@ -927,8 +1039,8 @@ textarea {
 
 .task-open-dot {
   display: inline-block;
-  width: 14px;
-  height: 14px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   border: 3px solid rgba(13, 13, 13, 0.6);
   background: rgba(255, 255, 255, 0.6);
@@ -939,8 +1051,8 @@ textarea {
 
 .task-done-dot {
   display: inline-block;
-  width: 14px;
-  height: 14px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: var(--green);
   box-shadow: 0 0 0 4px rgba(90, 143, 91, 0.12);
@@ -964,15 +1076,20 @@ textarea {
 }
 
 .list-delete-button {
-  border: 1px solid rgba(29, 36, 27, 0.12);
-  background: rgba(255, 255, 255, 0.72);
-  color: rgba(29, 36, 27, 0.8);
+  border: 1px solid rgba(196, 81, 81, 0.2);
+  background: rgba(196, 81, 81, 0.08);
+  color: #d94d4d;
   border-radius: 999px;
   padding: 6px 10px;
-  font-size: 0.72rem;
+  font-size: 1rem;
+  line-height: 1;
   font-weight: 700;
   cursor: pointer;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
 }
 
 .task-meta {
@@ -1249,8 +1366,31 @@ textarea {
     gap: 6px;
   }
 
+  .month-grid {
+    grid-template-rows: repeat(6, minmax(72px, 1fr));
+    min-height: 0;
+  }
+
   .day-cell {
     min-height: 72px;
+    padding: 6px;
+  }
+
+  .day-events {
+    gap: 2px;
+    width: calc(100% + 6px);
+    margin-left: -3px;
+    margin-right: -3px;
+  }
+
+  .day-event {
+    min-height: 7px;
+    height: 9px;
+    padding: 0 3px;
+    font-size: 0;
+    line-height: 0;
+    color: transparent;
+    border-radius: 4px;
   }
 
   .task-item {

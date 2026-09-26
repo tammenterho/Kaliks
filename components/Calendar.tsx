@@ -73,10 +73,17 @@ function getMonthGrid(monthDate: Date) {
     1
   );
   const firstWeekday = (firstDayOfMonth.getDay() + 6) % 7;
+  const daysInMonth = new Date(
+    monthDate.getFullYear(),
+    monthDate.getMonth() + 1,
+    0
+  ).getDate();
+  const trailingDays = (7 - ((firstWeekday + daysInMonth) % 7)) % 7;
+  const totalCells = firstWeekday + daysInMonth + trailingDays;
   const gridStart = new Date(firstDayOfMonth);
   gridStart.setDate(firstDayOfMonth.getDate() - firstWeekday);
 
-  return Array.from({ length: 42 }, (_, index) => {
+  return Array.from({ length: totalCells }, (_, index) => {
     const date = new Date(gridStart);
     date.setDate(gridStart.getDate() + index);
 
@@ -101,6 +108,7 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(todayKey);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
   const [draft, setDraft] = useState({
     title: "",
     start: todayKey,
@@ -109,6 +117,7 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
   });
 
   const monthGrid = useMemo(() => getMonthGrid(visibleMonth), [visibleMonth]);
+  const monthGridRows = Math.ceil(monthGrid.length / 7);
 
   const monthLabel = new Intl.DateTimeFormat("fi-FI", {
     month: "long",
@@ -185,6 +194,18 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
     selectedEventId !== null
       ? events.find((event) => event.id === selectedEventId) ?? null
       : null;
+
+  const selectedDayEvents = selectedDayKey ? getEventsForDay(selectedDayKey) : [];
+
+  const closeDayDetails = () => {
+    setSelectedEventId(null);
+    setSelectedDayKey(null);
+  };
+
+  const openDaySummary = (dateKey: string) => {
+    setSelectedEventId(null);
+    setSelectedDayKey(dateKey);
+  };
 
   return (
     <section className="panel calendar-panel">
@@ -288,10 +309,15 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
         ))}
       </div>
 
-      <div className="month-grid">
+      <div
+        className="month-grid"
+        style={{ gridTemplateRows: `repeat(${monthGridRows}, minmax(96px, 1fr))` }}
+      >
         {monthGrid.map((cell) => {
           const cellKey = toDateKey(cell.date);
           const dayEvents = getEventsForDay(cellKey);
+          const visibleDayEvents = dayEvents.slice(0, 2);
+          const hasMoreEvents = dayEvents.length > visibleDayEvents.length;
 
           return (
             <button
@@ -300,69 +326,133 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
               className={`day-cell ${cell.inMonth ? "in-month" : "outside-month"} ${
                 cellKey === todayKey ? "today" : ""
               }`}
-              onClick={() => openComposer(cellKey)}
+              onClick={() => openDaySummary(cellKey)}
             >
               <span className={`date-number ${cellKey === todayKey ? "today-number" : ""}`}>
                 {cell.dayNumber}
               </span>
 
               <div className="day-events">
-                {dayEvents.map((event) => (
-                  <button
+                {visibleDayEvents.map((event) => (
+                  <span
                     key={`${event.id}-${cellKey}`}
-                    type="button"
                     className="day-event"
                     style={{ background: event.color }}
-                    onClick={(eventClick) => {
-                      eventClick.stopPropagation();
-                      setSelectedEventId(event.id);
-                    }}
                   >
                     {event.title}
-                  </button>
+                  </span>
                 ))}
+
+                {hasMoreEvents && (
+                  <span className="day-more-events">+ muita</span>
+                )}
               </div>
             </button>
           );
         })}
       </div>
 
-      {selectedEvent && (
+      {(selectedEvent || selectedDayKey) && (
         <div
           className="event-details-backdrop"
-          onClick={() => setSelectedEventId(null)}
+          onClick={closeDayDetails}
         >
           <div
             className="event-details"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="event-details-header">
-              <strong>{selectedEvent.title}</strong>
-              <button
-                type="button"
-                className="close-button"
-                aria-label="Sulje"
-                onClick={() => setSelectedEventId(null)}
-              >
-                ×
-              </button>
-            </div>
+            {selectedEvent ? (
+              <>
+                <div className="event-details-header">
+                  <strong>{selectedEvent.title}</strong>
+                  <button
+                    type="button"
+                    className="close-button"
+                    aria-label="Sulje"
+                    onClick={closeDayDetails}
+                  >
+                    ×
+                  </button>
+                </div>
 
-            <p>
-              {formatDateLabel(selectedEvent.start)} - {formatDateLabel(selectedEvent.end)}
-            </p>
+                <p>
+                  {formatDateLabel(selectedEvent.start)} - {formatDateLabel(selectedEvent.end)}
+                </p>
 
-            <button
-              type="button"
-              className="delete-button"
-              onClick={() => {
-                onDeleteEvent(selectedEvent.id);
-                setSelectedEventId(null);
-              }}
-              aria-label="Poista tapahtuma"
-            >
-              🗑
-            </button>
+                <button
+                  type="button"
+                  className="delete-button"
+                  onClick={() => {
+                    onDeleteEvent(selectedEvent.id);
+                    closeDayDetails();
+                  }}
+                  aria-label="Poista tapahtuma"
+                  title="Poista tapahtuma"
+                >
+                  🗑
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="event-details-header">
+                  <strong>{selectedDayKey ? formatDateLabel(selectedDayKey) : "Päivän asiat"}</strong>
+                  <button
+                    type="button"
+                    className="close-button"
+                    aria-label="Sulje"
+                    onClick={closeDayDetails}
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="day-summary-list">
+                  {selectedDayEvents.length === 0 ? (
+                    <p>Ei vierailijoita tälle päivälle.</p>
+                  ) : (
+                    selectedDayEvents.map((event) => (
+                      <div key={event.id} className="day-summary-item">
+                        <div className="day-summary-item-main">
+                          <strong>{event.title}</strong>
+                          <p>
+                            {formatDateLabel(event.start)} - {formatDateLabel(event.end)}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="day-summary-delete"
+                          onClick={() => {
+                            onDeleteEvent(event.id);
+                          }}
+                          aria-label={`Poista tapahtuma ${event.title}`}
+                          title={`Poista tapahtuma ${event.title}`}
+                        >
+                          🗑
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="day-summary-actions">
+                  <AddButton
+                    type="button"
+                    onClick={() => {
+                      if (!selectedDayKey) {
+                        closeDayDetails();
+                        return;
+                      }
+
+                      setSelectedDayKey(null);
+                      openComposer(selectedDayKey);
+                    }}
+                  >
+                    Lisää
+                  </AddButton>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
