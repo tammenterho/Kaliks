@@ -22,6 +22,36 @@ type CalendarProps = {
 };
 
 const calendarWeekdays = ["Ma", "Ti", "Ke", "To", "Pe", "La", "Su"];
+const eventPalette = [
+  "#7c6ad9",
+  "#3ebd8d",
+  "#e39a36",
+  "#d85d6a",
+  "#4bb7d6",
+  "#8e65d8",
+  "#5fae48",
+  "#db7f77",
+  "#2d9c9a",
+  "#efb84d",
+];
+
+function getRandomColor() {
+  const hue = Math.floor(Math.random() * 360);
+  return `hsl(${hue} 70% 58%)`;
+}
+
+function getDistinctEventColor(existingEvents: CalendarEvent[]) {
+  const usedColors = new Set(existingEvents.map((event) => event.color.toLowerCase()));
+  const availableColors = eventPalette.filter(
+    (color) => !usedColors.has(color.toLowerCase())
+  );
+
+  if (availableColors.length > 0) {
+    return availableColors[Math.floor(Math.random() * availableColors.length)];
+  }
+
+  return getRandomColor();
+}
 
 function formatDateLabel(dateValue: string) {
   const date = new Date(`${dateValue}T00:00:00`);
@@ -63,17 +93,46 @@ function toDateKey(date: Date) {
 }
 
 export default function Calendar({ events, onAddEvent, onDeleteEvent }: CalendarProps) {
+  const today = new Date();
+  const todayKey = toDateKey(today);
+  const [visibleMonth, setVisibleMonth] = useState(new Date(2026, 8, 1));
+
   const [isComposerOpen, setIsComposerOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState("2026-09-12");
+  const [selectedDate, setSelectedDate] = useState(todayKey);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [draft, setDraft] = useState({
     title: "",
-    start: "2026-09-12",
-    end: "2026-09-12",
-    color: "#7c6ad9",
+    start: todayKey,
+    end: todayKey,
+    color: getDistinctEventColor(events),
   });
 
-  const monthGrid = useMemo(() => getMonthGrid(new Date(2026, 8, 1)), []);
+  const monthGrid = useMemo(() => getMonthGrid(visibleMonth), [visibleMonth]);
+
+  const monthLabel = new Intl.DateTimeFormat("fi-FI", {
+    month: "long",
+    year: "numeric",
+  }).format(visibleMonth);
+
+  const goToPreviousMonth = () => {
+    setVisibleMonth((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setVisibleMonth((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1));
+  };
+
+  const goToToday = () => {
+    const newMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    setVisibleMonth(newMonth);
+    setSelectedDate(todayKey);
+    setDraft({
+      title: "",
+      start: todayKey,
+      end: todayKey,
+      color: getDistinctEventColor(events),
+    });
+  };
 
   const openComposer = (dateKey?: string) => {
     const nextDate = dateKey ?? selectedDate ?? "2026-09-12";
@@ -82,7 +141,7 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
       title: "",
       start: nextDate,
       end: nextDate,
-      color: "#7c6ad9",
+      color: getDistinctEventColor(events),
     });
     setIsComposerOpen(true);
   };
@@ -139,8 +198,24 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
         </button>
       </div>
 
-      <div className="month-header">
-        <strong>Syyskuu 2026</strong>
+      <div className="month-header-row flex items-center justify-between gap-3">
+        <div className="month-header flex-1 text-center">
+          <strong>{monthLabel}</strong>
+        </div>
+
+        <div className="month-actions flex items-center gap-2">
+          <div className="month-nav-group flex items-center gap-2">
+            <button type="button" className="month-nav-button" onClick={goToPreviousMonth} aria-label="Edellinen kuukausi">
+              ←
+            </button>
+            <button type="button" className="month-nav-button" onClick={goToNextMonth} aria-label="Seuraava kuukausi">
+              →
+            </button>
+          </div>
+          <button type="button" className="today-button" onClick={goToToday}>
+            Tänään
+          </button>
+        </div>
       </div>
 
       <div className="weekday-row">
@@ -158,10 +233,14 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
             <button
               key={cell.key}
               type="button"
-              className={`day-cell ${cell.inMonth ? "in-month" : "outside-month"}`}
+              className={`day-cell ${cell.inMonth ? "in-month" : "outside-month"} ${
+                cellKey === todayKey ? "today" : ""
+              }`}
               onClick={() => openComposer(cellKey)}
             >
-              <span className="date-number">{cell.dayNumber}</span>
+              <span className={`date-number ${cellKey === todayKey ? "today-number" : ""}`}>
+                {cell.dayNumber}
+              </span>
 
               <div className="day-events">
                 {dayEvents.map((event) => (
@@ -225,7 +304,13 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
       )}
 
       {isComposerOpen && (
-        <div className="event-composer">
+        <form
+          className="event-composer"
+          onSubmit={(event) => {
+            event.preventDefault();
+            handleAddEvent();
+          }}
+        >
           <label>
             Nimi
             <input
@@ -260,21 +345,10 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
                 }
               />
             </label>
-
-            <label>
-              Väri
-              <input
-                type="color"
-                value={draft.color}
-                onChange={(event) =>
-                  setDraft((current) => ({ ...current, color: event.target.value }))
-                }
-              />
-            </label>
           </div>
 
           <div className="composer-actions">
-            <button type="button" onClick={handleAddEvent}>
+            <button type="submit">
               Lisää tapahtuma
             </button>
             <button
@@ -285,17 +359,9 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
               Peruuta
             </button>
           </div>
-        </div>
+        </form>
       )}
 
-      <div className="agenda-card">
-        <p className="agenda-label">Tänään</p>
-        <h3>Keittiön siivous ja varusteiden järjestely</h3>
-        <p>
-          Varaa aika ennen 18:00, kun kaikki tavarat on luovutettu takaisin
-          varastoon.
-        </p>
-      </div>
     </section>
   );
 }

@@ -106,6 +106,10 @@ textarea {
   margin-bottom: 20px;
 }
 
+.checklist-header {
+  justify-content: center;
+}
+
 .panel-header h2 {
   margin: 0;
   font-size: 1.45rem;
@@ -126,9 +130,53 @@ textarea {
   cursor: pointer;
 }
 
-.month-header {
+.calendar-panel .mini-button {
+  background: var(--green);
+  border-color: var(--green);
+  color: white;
+}
+
+.month-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 12px;
+}
+
+.month-header {
   font-size: 1.15rem;
+  text-align: center;
+  flex: 1;
+}
+
+.month-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-nav-button,
+.today-button {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--foreground);
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.today-button {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
 .weekday-row {
@@ -182,11 +230,22 @@ textarea {
   transform: translateY(-1px);
 }
 
+.day-cell.today {
+  border: 2px solid #1d4ed8;
+  background: rgba(191, 219, 254, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(29, 78, 216, 0.12);
+}
+
 .date-number {
   font-size: 0.8rem;
   font-weight: 700;
   display: block;
   margin-bottom: auto;
+}
+
+.date-number.today-number {
+  color: #1d4ed8;
+  font-weight: 900;
 }
 
 .day-events {
@@ -359,6 +418,34 @@ textarea {
   color: rgba(29, 36, 27, 0.8);
 }
 
+.checklist-add,
+.task-add {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.checklist-add input,
+.task-add input {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 11px 12px;
+  color: var(--foreground);
+}
+
+.checklist-add button,
+.task-add button {
+  border: none;
+  border-radius: 12px;
+  background: var(--green);
+  color: white;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .checklist,
 .task-list {
   display: flex;
@@ -418,13 +505,104 @@ textarea {
 }
 
 .task-item.done {
-  opacity: 0.7;
+  background: rgba(107, 114, 128, 0.12);
+  border-color: rgba(107, 114, 128, 0.18);
+  color: rgba(29, 36, 27, 0.62);
+  opacity: 0.9;
+}
+
+.task-item.done strong {
+  text-decoration: line-through;
 }
 
 .task-main {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
+}
+
+.task-main strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.status-dot-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.status-dot-button:hover {
+  transform: scale(1.08);
+}
+
+.status-dot-button:active {
+  transform: scale(0.96);
+}
+
+.task-open-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 3px solid rgba(13, 13, 13, 0.6);
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 0 4px rgba(90, 143, 91, 0.08);
+  flex-shrink: 0;
+  transition: all 0.18s ease;
+}
+
+.task-done-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 4px rgba(90, 143, 91, 0.12);
+  flex-shrink: 0;
+  animation: statusPulse 0.2s ease;
+}
+
+@keyframes statusPulse {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.6;
+  }
+  60% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.list-delete-button {
+  border: 1px solid rgba(29, 36, 27, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  color: rgba(29, 36, 27, 0.8);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .task-meta {
@@ -436,50 +614,196 @@ textarea {
   color: rgba(29, 36, 27, 0.7);
 }
 
-.priority {
-  display: inline-flex;
-  width: fit-content;
-  padding: 5px 8px;
-  border-radius: 999px;
-  font-size: 0.68rem;
+.task-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 27, 22, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 30;
+}
+
+.task-modal {
+  width: min(440px, 100%);
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.task-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.task-modal-header strong {
+  font-size: 1.05rem;
+}
+
+.task-modal-preview {
+  margin: 0 0 16px;
+  line-height: 1.6;
+  color: rgba(29, 36, 27, 0.8);
+  white-space: pre-wrap;
+}
+
+.task-modal-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
   font-weight: 700;
-  letter-spacing: 0.04em;
 }
 
-.priority.korkea {
-  background: rgba(196, 81, 81, 0.12);
-  color: #b54949;
+.task-modal-check input {
+  accent-color: var(--green);
+  width: 18px;
+  height: 18px;
 }
 
-.priority.keski {
-  background: rgba(106, 132, 202, 0.12);
-  color: #4968ba;
+.task-modal-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
-.priority.matala {
-  background: rgba(90, 143, 91, 0.12);
-  color: var(--green);
+.notes-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.notes-panel textarea {
-  width: 100%;
-  min-height: 260px;
+.notes-add {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.notes-add textarea {
+  flex: 1;
+  min-height: 80px;
   resize: vertical;
   border: 1px solid var(--line);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.55);
-  padding: 16px 18px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 11px 12px;
   color: var(--foreground);
+  line-height: 1.5;
 }
 
-.notes-panel textarea:focus {
-  outline: 2px solid rgba(90, 143, 91, 0.25);
-  border-color: rgba(90, 143, 91, 0.4);
+.notes-add button {
+  border: none;
+  border-radius: 12px;
+  background: var(--green);
+  color: white;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.note-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: rgba(238, 242, 211, 0.75);
+  border: 1px solid rgba(90, 143, 91, 0.22);
+  border-radius: 16px;
+  padding: 14px 16px;
+  color: rgba(29, 36, 27, 0.82);
+  box-shadow: 0 4px 10px rgba(74, 90, 55, 0.04);
+}
+
+.note-item span {
+  flex: 1;
+  line-height: 1.5;
 }
 
 .empty-state {
   margin: 0;
   color: rgba(29, 36, 27, 0.7);
+}
+
+.status-pill-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.login-card {
+  width: min(440px, 100%);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  padding: 32px 28px;
+}
+
+.login-card h1 {
+  margin: 0 0 8px;
+  font-size: clamp(2rem, 6vw, 2.8rem);
+}
+
+.login-subtitle {
+  margin: 0 0 20px;
+  color: rgba(29, 36, 27, 0.75);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.login-form input {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 12px 14px;
+  font-size: 1rem;
+}
+
+.login-form button {
+  border: none;
+  border-radius: 12px;
+  background: var(--green);
+  color: white;
+  padding: 12px 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.login-error {
+  margin: 0;
+  color: #b54949;
+  font-weight: 700;
 }
 
 @media (max-width: 900px) {
