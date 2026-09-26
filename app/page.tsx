@@ -46,11 +46,18 @@ type EventRow = {
 };
 
 const seasonImages = {
-  spring: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1200&q=80",
-  summer: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
-  autumn: "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1200&q=80",
-  winter: "https://images.unsplash.com/photo-1482192505345-5655af888cc4?auto=format&fit=crop&w=1200&q=80",
+  spring: "/images/ylane-kesa.JPG",
+  summer: "/images/ylane-kesa.JPG",
+  autumn: "/images/yläne-kesä.JPG",
+  winter: "/images/ylane-kesa.JPG",
 };
+
+const seasonImagePositions = {
+  spring: "center 20%",
+  summer: "center 28%",
+  autumn: "center 48%",
+  winter: "center 35%",
+} as const;
 
 export default function Home() {
   const [missingItems, setMissingItems] = useState<MissingItem[]>([]);
@@ -575,7 +582,11 @@ export default function Home() {
         </header>
 
         <div className="season-banner" aria-label="Vuosinajan kuva">
-          <img src={seasonImages[currentSeason]} alt="Vuosinajan kuva" />
+          <img
+            src={seasonImages[currentSeason]}
+            alt="Vuosinajan kuva"
+            style={{ objectPosition: seasonImagePositions[currentSeason] }}
+          />
         </div>
 
         <Calendar
@@ -587,6 +598,10 @@ export default function Home() {
         <section className="panel checklist-panel">
           <div className="panel-header panel-header-title-only">
             <h2>Mitä puuttuu</h2>
+          </div>
+
+          <div className="section-status-row">
+            <span className="counter">{missingItems.length} kpl</span>
           </div>
 
           <div className="checklist-add">
