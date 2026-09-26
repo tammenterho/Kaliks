@@ -1,5 +1,6 @@
 "use client";
 
+import AddButton from "@/components/AddButton";
 import { useMemo, useState } from "react";
 
 export type CalendarEvent = {
@@ -187,19 +188,12 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
 
   return (
     <section className="panel calendar-panel">
-      <div className="panel-header">
+      <div className="panel-header panel-header-title-only">
         <h2>Kalenteri</h2>
-        <button
-          type="button"
-          className="mini-button"
-          onClick={() => openComposer(selectedDate)}
-        >
-          + Lisää
-        </button>
       </div>
 
-      <div className="month-header-row flex items-center justify-between gap-3">
-        <div className="month-header flex-1 text-center">
+      <div className="calendar-toolbar">
+        <div className="calendar-month-label">
           <strong>{monthLabel}</strong>
         </div>
 
@@ -216,7 +210,76 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
             Tänään
           </button>
         </div>
+
+        <div className="calendar-toolbar-action">
+          <AddButton
+            type="button"
+            className="mini-button"
+            onClick={() => openComposer(selectedDate)}
+          >
+            Lisää
+          </AddButton>
+        </div>
       </div>
+
+      {isComposerOpen && (
+        <form
+          className="event-composer"
+          onSubmit={(event) => {
+            event.preventDefault();
+            handleAddEvent();
+          }}
+        >
+          <label>
+            Nimi
+            <input
+              type="text"
+              value={draft.title}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, title: event.target.value }))
+              }
+              placeholder="esim. Mikko"
+            />
+          </label>
+
+          <div className="event-composer-row">
+            <label>
+              Aloitus
+              <input
+                type="date"
+                value={draft.start}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, start: event.target.value }))
+                }
+              />
+            </label>
+
+            <label>
+              Loppu
+              <input
+                type="date"
+                value={draft.end}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, end: event.target.value }))
+                }
+              />
+            </label>
+          </div>
+
+          <div className="composer-actions">
+            <AddButton type="submit">
+              Lisää tapahtuma
+            </AddButton>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => setIsComposerOpen(false)}
+            >
+              Peruuta
+            </button>
+          </div>
+        </form>
+      )}
 
       <div className="weekday-row">
         {calendarWeekdays.map((weekday) => (
@@ -301,65 +364,6 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
             </button>
           </div>
         </div>
-      )}
-
-      {isComposerOpen && (
-        <form
-          className="event-composer"
-          onSubmit={(event) => {
-            event.preventDefault();
-            handleAddEvent();
-          }}
-        >
-          <label>
-            Nimi
-            <input
-              type="text"
-              value={draft.title}
-              onChange={(event) =>
-                setDraft((current) => ({ ...current, title: event.target.value }))
-              }
-              placeholder="esim. Mikko"
-            />
-          </label>
-
-          <div className="event-composer-row">
-            <label>
-              Aloitus
-              <input
-                type="date"
-                value={draft.start}
-                onChange={(event) =>
-                  setDraft((current) => ({ ...current, start: event.target.value }))
-                }
-              />
-            </label>
-
-            <label>
-              Loppu
-              <input
-                type="date"
-                value={draft.end}
-                onChange={(event) =>
-                  setDraft((current) => ({ ...current, end: event.target.value }))
-                }
-              />
-            </label>
-          </div>
-
-          <div className="composer-actions">
-            <button type="submit">
-              Lisää tapahtuma
-            </button>
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={() => setIsComposerOpen(false)}
-            >
-              Peruuta
-            </button>
-          </div>
-        </form>
       )}
 
     </section>

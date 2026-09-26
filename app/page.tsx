@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import AddButton from "@/components/AddButton";
 import Calendar, { type CalendarEvent } from "@/components/Calendar";
 import { supabase } from "@/lib/supabase";
 
@@ -44,6 +45,13 @@ type EventRow = {
   color?: string | null;
 };
 
+const seasonImages = {
+  spring: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1200&q=80",
+  summer: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+  autumn: "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1200&q=80",
+  winter: "https://images.unsplash.com/photo-1482192505345-5655af888cc4?auto=format&fit=crop&w=1200&q=80",
+};
+
 export default function Home() {
   const [missingItems, setMissingItems] = useState<MissingItem[]>([]);
 
@@ -57,9 +65,19 @@ export default function Home() {
   const [newNoteText, setNewNoteText] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingNote, setIsSavingNote] = useState(false);
+
+  useEffect(() => {
+    document.body.style.background = isDarkMode
+      ? "linear-gradient(135deg, #0f172a 0%, #111827 100%)"
+      : "linear-gradient(135deg, #f7f3eb 0%, #edf3ec 100%)";
+    document.body.style.color = isDarkMode ? "#e5e7eb" : "#1d241b";
+    document.body.style.transition = "background 0.2s ease, color 0.2s ease";
+  }, [isDarkMode]);
 
   useEffect(() => {
     const hasSessionCookie = document.cookie
@@ -493,24 +511,72 @@ export default function Home() {
 
   const sortedTasks = [...tasks].sort((a, b) => Number(a.done) - Number(b.done));
 
+  const getSeason = () => {
+    const month = new Date().getMonth() + 1;
+
+    if (month >= 3 && month <= 5) return "spring";
+    if (month >= 6 && month <= 8) return "summer";
+    if (month >= 9 && month <= 11) return "autumn";
+    return "winter";
+  };
+
+  const currentSeason = getSeason();
+
   if (!isAuthenticated) {
     return null;
   }
 
   return (
-    <main className="page-shell px-5 py-12 md:px-6">
+    <main
+      className={`page-shell px-5 py-12 md:px-6 ${isDarkMode ? "theme-dark" : ""} ${isZoomed ? "zoomed" : ""}`}
+      style={{ zoom: isZoomed ? 1.12 : 1 }}
+    >
       <div className="page-container mx-auto flex max-w-6xl flex-col gap-6">
-        <header className="hero-card flex items-center justify-between gap-4 rounded-[28px] p-5 md:p-7">
-          <h1 className="m-0 text-4xl font-bold tracking-tight md:text-5xl">Yläne</h1>
-
+        <header className="hero-card rounded-[28px] p-5 md:p-7">
           <button
             type="button"
-            className="mini-button inline-flex items-center rounded-full border border-slate-200 bg-white/80 px-3 py-2 text-xs font-bold"
+            className="mini-button logout-button inline-flex items-center rounded-full border border-slate-200 bg-white/80 px-3 py-2 text-xs font-bold"
             onClick={handleLogout}
           >
             Kirjaudu ulos
           </button>
+
+          <div className="header-main-content">
+            <h1 className="m-0 w-full text-center text-4xl font-bold tracking-tight md:text-5xl">Yläne</h1>
+
+            <div className="top-actions">
+              <div className="theme-toggle-wrap" aria-label="Teeman vaihtaja">
+                <span className="toggle-label">Särkeekö silmiä?</span>
+                <span className="toggle-icon" aria-hidden="true">☀️</span>
+                <button
+                  type="button"
+                  className={`theme-switch ${isDarkMode ? "on" : ""}`}
+                  onClick={() => setIsDarkMode((current) => !current)}
+                  aria-label="Vaihda tummaan tilaan"
+                >
+                  <span className="theme-switch-thumb" />
+                </button>
+                <span className="toggle-icon" aria-hidden="true">🌙</span>
+              </div>
+
+              <div className="zoom-toggle-wrap">
+                <span className="zoom-text">Onko kehno näkö?</span>
+                <button
+                  type="button"
+                  className="top-action-button"
+                  onClick={() => setIsZoomed((current) => !current)}
+                  aria-label="Suurennä tekstiä"
+                >
+                  {isZoomed ? "Pienennä tekstejä" : "Suurenna tekstejä"}
+                </button>
+              </div>
+            </div>
+          </div>
         </header>
+
+        <div className="season-banner" aria-label="Vuosinajan kuva">
+          <img src={seasonImages[currentSeason]} alt="Vuosinajan kuva" />
+        </div>
 
         <Calendar
           events={events}
@@ -519,7 +585,7 @@ export default function Home() {
         />
 
         <section className="panel checklist-panel">
-          <div className="panel-header checklist-header">
+          <div className="panel-header panel-header-title-only">
             <h2>Mitä puuttuu</h2>
           </div>
 
@@ -537,9 +603,9 @@ export default function Home() {
               placeholder="Esim. kahvi, pyyhkeet, säilytyslaatikko..."
               aria-label="Lisää puuttuva asia"
             />
-            <button type="button" onClick={() => void handleAddMissingItem()}>
+            <AddButton onClick={() => void handleAddMissingItem()}>
               Lisää
-            </button>
+            </AddButton>
           </div>
 
           <div className="checklist">
@@ -564,8 +630,11 @@ export default function Home() {
         </section>
 
         <section className="panel">
-          <div className="panel-header">
+          <div className="panel-header panel-header-title-only">
             <h2>Tehtävät</h2>
+          </div>
+
+          <div className="section-status-row">
             <span className="counter">
               {completedTasks}/{tasks.length}
             </span>
@@ -585,9 +654,9 @@ export default function Home() {
               placeholder="Esim. kerää ruuat autoon..."
               aria-label="Lisää tehtävä"
             />
-            <button type="button" onClick={() => void handleAddTask()}>
+            <AddButton onClick={() => void handleAddTask()}>
               Lisää
-            </button>
+            </AddButton>
           </div>
 
           <div className="task-list">
@@ -691,9 +760,12 @@ export default function Home() {
         })()}
 
         <section className="panel notes-panel">
-          <div className="panel-header">
+          <div className="panel-header panel-header-title-only">
             <h2>Muita huomioita</h2>
-            {isSavingNote && <span className="saving">Tallennetaan...</span>}
+          </div>
+
+          <div className="section-status-row">
+            {isSavingNote ? <span className="saving">Tallennetaan...</span> : <span className="muted-placeholder" aria-hidden="true"> </span>}
           </div>
 
           <div className="notes-add">
@@ -710,9 +782,9 @@ export default function Home() {
               placeholder="Lisää huomio..."
               aria-label="Lisää huomio"
             />
-            <button type="button" onClick={() => void handleAddNote()}>
+            <AddButton onClick={() => void handleAddNote()}>
               Lisää
-            </button>
+            </AddButton>
           </div>
 
           <div className="notes-list">
