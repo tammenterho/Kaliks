@@ -20,8 +20,8 @@
   --panel: rgba(15, 23, 42, 0.82);
   --panel-strong: #111827;
   --line: rgba(148, 163, 184, 0.2);
-  --green: #4ade80;
-  --green-soft: rgba(74, 222, 128, 0.14);
+  --green: #5f9d6f;
+  --green-soft: rgba(95, 157, 111, 0.18);
   --blue: #7aa2ff;
   --blue-soft: rgba(122, 162, 255, 0.12);
   --sand: #f4b95e;
@@ -207,6 +207,10 @@ textarea {
   color: #dfe7f5;
 }
 
+.page-shell.theme-dark .weekday-row {
+  color: rgba(226, 232, 240, 0.82);
+}
+
 .page-shell.theme-dark .event-composer input,
 .page-shell.theme-dark .checklist-add input,
 .page-shell.theme-dark .task-add input,
@@ -338,6 +342,18 @@ textarea {
   visibility: hidden;
 }
 
+.calendar-helper-text {
+  margin: 0 0 12px;
+  font-size: 0.72rem;
+  font-style: italic;
+  color: rgba(29, 36, 27, 0.72);
+  text-align: center;
+}
+
+.page-shell.theme-dark .calendar-helper-text {
+  color: rgba(229, 231, 235, 0.8);
+}
+
 .calendar-toolbar {
   display: grid;
   grid-template-columns: minmax(120px, 1fr) auto minmax(110px, 1fr);
@@ -406,7 +422,9 @@ textarea {
   transform: translateY(-1px);
 }
 
-.calendar-panel .mini-button {
+.calendar-panel .mini-button,
+.page-shell.theme-dark .mini-button,
+.page-shell.theme-dark .calendar-panel .mini-button {
   background: var(--green);
   border-color: var(--green);
   color: white;
@@ -581,15 +599,19 @@ textarea {
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
+  width: calc(100% + 16px);
+  margin-left: -8px;
+  margin-right: -8px;
 }
 
 .day-event {
   display: block;
   width: 100%;
   border: none;
-  border-radius: 999px;
-  padding: 3px 6px;
+  border-radius: 8px;
+  padding: 5px 8px;
+  min-height: 22px;
   font-size: 0.55rem;
   line-height: 1.2;
   font-weight: 700;
@@ -617,12 +639,16 @@ textarea {
 }
 
 .event-details {
-  width: min(380px, 100%);
+  width: min(360px, 100%);
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 18px;
   box-shadow: var(--shadow);
   padding: 18px 18px 16px;
+  box-sizing: border-box;
 }
 
 .event-details-header {
@@ -757,11 +783,13 @@ textarea {
   display: flex;
   gap: 10px;
   margin-bottom: 18px;
+  flex-wrap: wrap;
 }
 
 .checklist-add input,
 .task-add input {
-  flex: 1;
+  flex: 1 1 220px;
+  min-width: 0;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.7);
@@ -1024,10 +1052,12 @@ textarea {
   display: flex;
   gap: 10px;
   align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .notes-add textarea {
-  flex: 1;
+  flex: 1 1 220px;
+  min-width: 0;
   min-height: 80px;
   resize: vertical;
   border: 1px solid var(--line);
@@ -1113,12 +1143,39 @@ textarea {
   font-weight: 700;
 }
 
-.login-form input {
+.password-field-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.password-field-wrap input {
+  flex: 1;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.8);
   padding: 12px 14px;
   font-size: 1rem;
+}
+
+.checkbox-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 74px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--foreground);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-toggle input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--green);
 }
 
 .login-form button {

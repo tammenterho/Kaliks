@@ -192,6 +192,7 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
         <h2>Kalenteri</h2>
       </div>
 
+        <p className="calendar-helper-text">Lisää kalenteriin tieto Yläneelle tulijoista</p>
       <div className="calendar-toolbar">
         <div className="calendar-month-label">
           <strong>{monthLabel}</strong>

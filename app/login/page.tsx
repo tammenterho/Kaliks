@@ -6,6 +6,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -41,20 +42,26 @@ export default function LoginPage() {
   return (
     <main className="login-shell">
       <div className="login-card">
-        <p className="eyebrow">Yläne</p>
-        <h1>Kirjaudu sisään</h1>
-        <p className="login-subtitle">Syötä yhteinen salasana mökkisovellukseen.</p>
-
+        <p className="eyebrow text-center">Kalikka</p>
         <form onSubmit={handleSubmit} className="login-form">
           <label>
-            Salasana
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Salasana"
-              autoComplete="current-password"
-            />
+            <div className="password-field-wrap">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Salasana"
+                autoComplete="current-password"
+              />
+              <label className="checkbox-toggle" aria-label={showPassword ? "Piilota salasana" : "Näytä salasana"}>
+                <input
+                  type="checkbox"
+                  checked={showPassword}
+                  onChange={() => setShowPassword((current) => !current)}
+                />
+                <span>Näytä</span>
+              </label>
+            </div>
           </label>
 
           {error && <p className="login-error">{error}</p>}
