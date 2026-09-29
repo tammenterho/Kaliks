@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import AddButton from "@/components/AddButton";
 import Calendar, { type CalendarEvent } from "@/components/Calendar";
 import { supabase } from "@/lib/supabase";
@@ -92,6 +93,17 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [isCopyingMissingItems, setIsCopyingMissingItems] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => setToastMessage(null), 3000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [toastMessage]);
 
   useEffect(() => {
     document.body.style.background = isDarkMode
@@ -278,6 +290,7 @@ export default function Home() {
     }
 
     setEvents((current) => current.filter((event) => event.id !== id));
+    setToastMessage("Poistettu");
 
     if (!supabase) {
       return;
@@ -311,6 +324,7 @@ export default function Home() {
 
     setTasks((current) => [taskToAdd, ...current]);
     setNewTaskText("");
+    setToastMessage("Ja eikun hommiin");
 
     if (!supabase) {
       return;
@@ -374,6 +388,7 @@ export default function Home() {
     }
 
     setMissingItems((current) => current.filter((item) => item.id !== id));
+    setToastMessage("Poistettu");
 
     if (!supabase) {
       return;
@@ -408,6 +423,10 @@ export default function Home() {
       )
     );
 
+    if (newDone) {
+      setToastMessage("Oletpas reipas!");
+    }
+
     const { error } = await supabase
       .from("tasks")
       .update({ done: newDone })
@@ -436,6 +455,7 @@ export default function Home() {
 
     setTasks((current) => current.filter((task) => task.id !== id));
     setSelectedTaskId(null);
+    setToastMessage("Poistettu");
 
     if (!supabase) {
       return;
@@ -538,6 +558,7 @@ export default function Home() {
 
       setIsCopyingMissingItems(true);
       window.setTimeout(() => setIsCopyingMissingItems(false), 1400);
+      setToastMessage("Kopioitu!");
     } catch (error) {
       console.error("Listan kopiointi epäonnistui:", error);
     }
@@ -587,6 +608,12 @@ export default function Home() {
       className={`page-shell px-5 py-12 md:px-6 ${isDarkMode ? "theme-dark" : ""} ${isZoomed ? "zoomed" : ""}`}
       style={{ zoom: isZoomed ? 1.12 : 1 }}
     >
+      {toastMessage &&
+        createPortal(
+          <div className="toast-notification toast-success">{toastMessage}</div>,
+          document.body
+        )}
+
       <div className="page-container mx-auto flex max-w-6xl flex-col gap-6">
         <header className="hero-card rounded-[28px] p-5 md:p-7">
           <button

@@ -195,10 +195,14 @@ textarea {
 .page-shell.theme-dark .checklist-add input,
 .page-shell.theme-dark .task-add input,
 .page-shell.theme-dark .login-card,
-.page-shell.theme-dark .event-details,
 .page-shell.theme-dark .task-modal,
 .page-shell.theme-dark .theme-switch {
   background: rgba(15, 23, 42, 0.9);
+  color: var(--foreground);
+}
+
+.page-shell.theme-dark .event-details {
+  background: rgb(15, 23, 42);
   color: var(--foreground);
 }
 
@@ -640,6 +644,35 @@ textarea {
   opacity: 0.45;
 }
 
+.toast-notification {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  padding: 14px 22px;
+  border-radius: 999px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  animation: toast-slide-in 0.25s ease-out;
+}
+
+.toast-success {
+  background: #2f9e5c;
+  color: #ffffff;
+}
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 .event-details-backdrop {
   position: fixed;
   inset: 0;
@@ -647,7 +680,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 160px 20px 20px;
   z-index: 30;
 }
 

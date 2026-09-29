@@ -1,7 +1,8 @@
 "use client";
 
 import AddButton from "@/components/AddButton";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export type CalendarEvent = {
   id: number;
@@ -88,7 +89,7 @@ function getMonthGrid(monthDate: Date) {
     date.setDate(gridStart.getDate() + index);
 
     return {
-      key: date.toISOString().slice(0, 10),
+      key: toDateKey(date),
       date,
       dayNumber: date.getDate(),
       inMonth: date.getMonth() === monthDate.getMonth(),
@@ -96,8 +97,13 @@ function getMonthGrid(monthDate: Date) {
   });
 }
 
+// Builds a YYYY-MM-DD key from local date parts to avoid UTC shifting the day.
 function toDateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 export default function Calendar({ events, onAddEvent, onDeleteEvent }: CalendarProps) {
@@ -106,9 +112,14 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
   const [visibleMonth, setVisibleMonth] = useState(new Date(2026, 8, 1));
 
   const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const [composerOpenSignal, setComposerOpenSignal] = useState(0);
+  const composerRef = useRef<HTMLFormElement | null>(null);
   const [selectedDate, setSelectedDate] = useState(todayKey);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
+  const [dayDetailsOpenSignal, setDayDetailsOpenSignal] = useState(0);
+  const dayDetailsRef = useRef<HTMLDivElement | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [draft, setDraft] = useState({
     title: "",
     start: todayKey,
@@ -118,6 +129,28 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
 
   const monthGrid = useMemo(() => getMonthGrid(visibleMonth), [visibleMonth]);
   const monthGridRows = Math.ceil(monthGrid.length / 7);
+
+  useEffect(() => {
+    if (isComposerOpen) {
+      composerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [isComposerOpen, composerOpenSignal]);
+
+  useEffect(() => {
+    if (selectedEventId !== null || selectedDayKey) {
+      dayDetailsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [selectedEventId, selectedDayKey, dayDetailsOpenSignal]);
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => setToastMessage(null), 3000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [toastMessage]);
 
   const monthLabel = new Intl.DateTimeFormat("fi-FI", {
     month: "long",
@@ -154,6 +187,7 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
       color: getDistinctEventColor(events),
     });
     setIsComposerOpen(true);
+    setComposerOpenSignal((current) => current + 1);
   };
 
   const getEventsForDay = (dateKey: string) =>
@@ -188,6 +222,7 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
       end,
       color: draft.color,
     });
+    setToastMessage("Tervetuloa mökille ystävä ✌🏼");
   };
 
   const selectedEvent =
@@ -205,10 +240,17 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
   const openDaySummary = (dateKey: string) => {
     setSelectedEventId(null);
     setSelectedDayKey(dateKey);
+    setDayDetailsOpenSignal((current) => current + 1);
   };
 
   return (
     <section className="panel calendar-panel">
+      {toastMessage &&
+        createPortal(
+          <div className="toast-notification toast-success">{toastMessage}</div>,
+          document.body
+        )}
+
       <div className="panel-header panel-header-title-only">
         <h2>Kalenteri</h2>
       </div>
@@ -246,6 +288,7 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
 
       {isComposerOpen && (
         <form
+          ref={composerRef}
           className="event-composer"
           onSubmit={(event) => {
             event.preventDefault();
@@ -260,7 +303,7 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
               onChange={(event) =>
                 setDraft((current) => ({ ...current, title: event.target.value }))
               }
-              placeholder="esim. Mikko"
+              placeholder="esim. Kirsi, Jukka ja Hilma"
             />
           </label>
 
@@ -290,7 +333,7 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
 
           <div className="composer-actions">
             <AddButton type="submit">
-              Lisää tapahtuma
+              Tallenna
             </AddButton>
             <button
               type="button"
@@ -359,6 +402,7 @@ export default function Calendar({ events, onAddEvent, onDeleteEvent }: Calendar
         >
           <div
             className="event-details"
+            ref={dayDetailsRef}
             onClick={(event) => event.stopPropagation()}
           >
             {selectedEvent ? (
